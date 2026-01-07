@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+class: ExporterNState.ExporterNState
+configuration:
+  username: Front Light
+  exporter_address: localhost:9002
+  value_channel_name: FrontLightIsOn
+  values: '{"IN": True, "OUT": False}'
+  state_channel_name: HardwareState

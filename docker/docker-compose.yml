@@ -1,0 +1,17 @@
+services:
+  sample-changer:
+    image: ghcr.io/mxcube/flex-server-simulation:20241212
+    container_name: flex-server
+    ports:
+      - "9001:9001"
+    restart: unless-stopped
+
+  minidiff:
+    image: ghcr.io/mxcube/arinax-md:latest
+    container_name: arinax-md
+    ports:
+      - "9002:9001"
+    environment:
+      - MD_GUI=false
+      - MD_BACKGROUND=true
+    restart: unless-stopped

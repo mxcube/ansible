@@ -1,0 +1,100 @@
+/* eslint-disable react/destructuring-assignment */
+/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable react/no-unused-prop-types */
+
+import PropTypes from 'prop-types';
+import { Component } from 'react';
+import { Button } from 'react-bootstrap';
+
+import TooltipTrigger from '../TooltipTrigger';
+import styles from './Item.module.css';
+import TaskItemContainer from './TaskItemContainer';
+
+export default class WorkflowTaskItem extends Component {
+  static propTypes = {
+    id: PropTypes.string.isRequired,
+    index: PropTypes.number.isRequired,
+  };
+
+  constructor(props) {
+    super(props);
+    this.showForm = this.showForm.bind(this);
+    this.pointIDString = this.pointIDString.bind(this);
+  }
+
+  showForm() {
+    const { data, sampleId } = this.props;
+    const { type, parameters } = data;
+    this.props.showForm(type, sampleId, data, parameters.shape);
+  }
+
+  pointIDString(parameters) {
+    let res = '';
+
+    if (parameters.shape !== -1) {
+      try {
+        res = `${this.props.shapes.shapes[parameters.shape].name}: `;
+      } catch {
+        res = '';
+      }
+    }
+
+    return res;
+  }
+
+  path(parameters) {
+    const path = parameters.path || '';
+    const pathEndPart = path.slice(-40);
+
+    return (
+      <TooltipTrigger id="wedge-path-tooltip" tooltipContent={path}>
+        <a style={{ flexGrow: 1 }}>
+          .../{pathEndPart.slice(pathEndPart.indexOf('/') + 1)}
+        </a>
+      </TooltipTrigger>
+    );
+  }
+
+  render() {
+    const { data } = this.props;
+
+    const { parameters } = data;
+
+    return (
+      <TaskItemContainer
+        index={this.props.index}
+        data={data}
+        pointIDString={this.pointIDString(parameters)}
+      >
+        <div className={styles.taskBody}>
+          <div>
+            <div className={styles.dataPath}>
+              <b>Path:</b>
+              {this.path(parameters)}
+              <Button
+                variant="outline-secondary"
+                style={{ width: '3em' }}
+                title="Copy path"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${parameters.path}`);
+                }}
+              >
+                <i className="fa fa-copy" aria-hidden="true" />
+              </Button>
+              <Button
+                variant="outline-secondary"
+                style={{ width: '3em' }}
+                title="Open parameters dialog"
+                onClick={() =>
+                  this.props.showWorkflowParametersDialog(null, true)
+                }
+              >
+                <i aria-hidden="true" className="fa fa-sliders-h" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </TaskItemContainer>
+    );
+  }
+}
