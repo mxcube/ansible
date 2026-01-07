@@ -141,21 +141,6 @@
       tags: [ui, build, frontend]
 
     # Docker containers management
-    - name: Pull flex-server Docker image from GitHub Container Registry
-      community.docker.docker_image:
-        name: ghcr.io/mxcube/flex-server-simulation
-        tag: "20241212"
-        source: pull
-      become_user: "{{ service_user }}"
-      tags: [docker]
-
-    - name: Pull arinax MD Docker image from GitHub Container Registry
-      community.docker.docker_image:
-        name: ghcr.io/mxcube/arinax-md
-        tag: latest
-        source: pull
-      become_user: "{{ service_user }}"
-      tags: [docker]
 
     - name: Start Docker containers with docker-compose
       community.docker.docker_compose_v2:
