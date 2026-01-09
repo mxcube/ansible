@@ -1,9 +1,0 @@
-%YAML 1.2
----
-class: ExporterNState.ExporterNState
-configuration:
-  username: Back Light
-  exporter_address: localhost:9002
-  value_channel_name: BackLightIsOn
-  values: '{"IN": True, "OUT": False}'
-  state_channel_name: HardwareState

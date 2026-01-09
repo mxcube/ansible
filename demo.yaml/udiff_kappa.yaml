@@ -1,9 +1,0 @@
-%YAML 1.2
----
-class: MicrodiffKappaMotor.MicrodiffKappaMotor
-configuration:
-  actuator_name: Kappa
-  exporter_address: localhost:9002
-  kappaTrans: '-0.09074,-0.30318,0.99421'
-  kappaTransD: '0.28107,0.30108,-0.91124'
-  username: kappa

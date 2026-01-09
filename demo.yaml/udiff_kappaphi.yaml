@@ -1,9 +1,0 @@
-%YAML 1.2
----
-class: MicrodiffKappaMotor.MicrodiffKappaMotor
-configuration:
-  actuator_name: Phi
-  exporter_address: localhost:9002
-  phiTrans: '0.10922,-0.10902,1.01722'
-  phiTransD: '-5.2E-4,0.0134,-0.99991'
-  username: Kappa phi

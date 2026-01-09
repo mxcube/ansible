@@ -9,7 +9,19 @@ Automated deployment of MXCubeWeb on virtual machines.
 3. **Docker** installed on VMs with docker-compose
 4. **Docker images** loaded on VMs (`flex-server:latest` and `arinax:MD`)
 
+
 ## Quick Start
+
+### 0. Install Ansible and dependencies
+
+Before running any deployment, install Ansible and required Python dependencies:
+
+```bash
+cd ansible
+./scripts/install_ansible.sh
+```
+
+This script will install Ansible (and any dependencies listed in `scripts/requirements.txt`) using pip. You only need to do this once per machine.
 
 ### 1. Configure inventory
 
@@ -34,7 +46,39 @@ use_local_repos: true               # Use local repos or clone from GitHub
 mxcubeweb_version: "develop"        # Git branch
 ```
 
-### 3. Deploy
+### 3. Prepare VMs (first time only)
+
+On each VM, load Docker images once:
+
+```bash
+# Copy docker images files to the VM
+scp flex-server-simulation_20241212.tar your-vm:/tmp/
+scp arinax_md.tar your-vm:/tmp/
+
+# On the VM, load images
+ssh your-vm
+docker load -i /tmp/flex-server-simulation_20241212.tar
+docker load -i /tmp/arinax_md.tar
+```
+
+
+#### 4. Configure your SSH connection (first time only)
+
+To set up SSH keys and configure access to your VM, use the provided script:
+
+```bash
+cd ansible
+./scripts/setup_ssh.sh
+```
+
+This script will:
+- Generate an SSH key pair if you don't have one
+- Copy your public key to the VM(s) listed in `inventory.yaml`
+- Ensure passwordless SSH access for Ansible and deployment scripts
+
+Follow the prompts in the script to complete the setup. You only need to do this once per machine.
+
+### 5. Deploy
 
 ```bash
 cd ansible
@@ -47,21 +91,6 @@ The script will:
 - Create an SSH tunnel to access the web interface
 
 Access MXCubeWeb at: http://localhost:8081
-
-## Prepare VMs (first time only)
-
-On each VM, load Docker images once:
-
-```bash
-# Copy tar files to the VM
-scp flex-server-simulation_20241212.tar your-vm:/tmp/
-scp arinax_md.tar your-vm:/tmp/
-
-# On the VM, load images
-ssh your-vm
-docker load -i /tmp/flex-server-simulation_20241212.tar
-docker load -i /tmp/arinax_md.tar
-```
 
 ## Available Scripts
 
@@ -80,7 +109,7 @@ Run Ansible playbook directly:
 ansible-playbook -i inventory.yaml playbooks/deploy_vm.yml
 ```
 
-Deploy only specific parts using tags:
+Deploy only specific parts using tags (can be use to update):
 
 ```bash
 # Deploy only [tags]
@@ -90,8 +119,22 @@ ansible-playbook -i inventory.yaml playbooks/deploy_vm.yml --tags tagsnames
 ansible-playbook -i inventory.yaml playbooks/deploy_vm.yml --tags tag1,tag2,...
 ```
 
-Available tags: `system`, `dependencies`, `setup`, `conda`, `repositories`, `python`, `ui`, `docker`, `service`, `systemd` 
-See deploy_vm.yml to know what each tags deploy
+
+Available tags:
+
+- `update`: Only update code, install Python/JS dependencies, and build the frontend (no full redeploy)
+- `system`: Install system packages (git, python, build tools, etc.)
+- `dependencies`: Install all dependencies (system, Python, JS)
+- `setup`: Create base directories and perform initial setup
+- `conda`: Install or update the Conda environment
+- `repositories`: Copy or clone the mxcubecore and mxcubeweb repositories
+- `python`: Install Python dependencies (e.g. with Poetry)
+- `ui`: Install and build the frontend (pnpm install/build)
+- `docker`: Manage Docker containers (start/stop with docker-compose)
+- `service`: Manage the systemd service for MXCubeWeb
+- `systemd`: Create or reload systemd service files
+
+See deploy_vm.yml for more information about each tag.
 
 ## Service Management
 

@@ -1,8 +1,0 @@
-%YAML 1.2
----
-class: ExporterMotor.ExporterMotor
-configuration:
-  actuator_name: CentringY
-  exporter_address: localhost:9002
-  tolerance: 1e-3
-  username: sampy

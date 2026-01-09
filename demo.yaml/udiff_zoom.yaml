@@ -1,9 +1,0 @@
-%YAML 1.2
----
-class: MicrodiffZoom.MicrodiffZoom
-configuration:
-  actuator_name: Zoom
-  exporter_address: localhost:9002
-  state_channel_name: ZoomState
-  username: zoom
-  value_channel_name: CoaxialCameraZoomValue
