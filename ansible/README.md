@@ -86,13 +86,15 @@ cd ansible
 ./scripts/start.sh
 ```
 
-The script start will:
+The script will:
 
 - Ask if you want to deploy/update MXCubeWeb
 - Start the service if not running
-- Create an SSH tunnel to access the web interface
+- Ask if you want to create an SSH tunnel to access the web interface
 
-Access MXCubeWeb at: http://localhost:8081
+If you create the SSH tunnel, access MXCubeWeb at: http://localhost:8081
+
+If you don't create the tunnel, access MXCubeWeb directly at: http://your-vm-hostname:8081
 
 ## Available Scripts
 
