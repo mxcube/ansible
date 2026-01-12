@@ -42,20 +42,31 @@ if ! ssh ${VM_HOST} "ss -tlnp | grep -q :${REMOTE_PORT}"; then
     echo "Warning: Port ${REMOTE_PORT} is not listening on ${VM_HOST}"
 fi
 
-# Kill existing tunnels
-echo "Cleaning up existing SSH tunnels..."
-pkill -f "ssh.*-L.*${LOCAL_PORT}:localhost:${REMOTE_PORT}" 2>/dev/null || true
-sleep 1
-
-# Create SSH tunnel
-
+# Ask if user wants to create SSH tunnel
 echo ""
-echo "Creating SSH tunnels..."
-echo "MXCubeWeb - Local port: ${LOCAL_PORT} "
-echo "Video Streamer - Local port: 8000"
-echo "URL: http://localhost:${LOCAL_PORT}"
-echo ""
-echo "Use scripts/stop.sh to stop the tunnels and close the application"
-echo ""
+read -p "Do you want to create SSH tunnel? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Kill existing tunnels
+    echo "Cleaning up existing SSH tunnels..."
+    pkill -f "ssh.*-L.*${LOCAL_PORT}:localhost:${REMOTE_PORT}" 2>/dev/null || true
+    sleep 1
 
-ssh -N -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} -L 8000:localhost:8000 ${VM_HOST}
+    # Create SSH tunnel
+
+    echo ""
+    echo "Creating SSH tunnels..."
+    echo "MXCubeWeb - Local port: ${LOCAL_PORT} "
+    echo "Video Streamer - Local port: 8000"
+    echo "URL: http://localhost:${LOCAL_PORT}"
+    echo ""
+    echo "Use scripts/stop.sh to stop the tunnels and close the application"
+    echo ""
+
+    ssh -N -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} -L 8000:localhost:8000 ${VM_HOST}
+else
+    echo ""
+    echo "No SSH tunnel created."
+    echo "Access MXCubeWeb directly at: http://${VM_HOST}:${REMOTE_PORT}"
+    echo ""
+fi

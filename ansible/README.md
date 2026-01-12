@@ -9,7 +9,6 @@ Automated deployment of MXCubeWeb on virtual machines.
 3. **Docker** installed on VMs with docker-compose
 4. **Docker images** loaded on VMs (`flex-server:latest` and `arinax:MD`)
 
-
 ## Quick Start
 
 ### 0. Install Ansible and dependencies
@@ -18,10 +17,12 @@ Before running any deployment, install Ansible and required Python dependencies:
 
 ```bash
 cd ansible
-./scripts/install_ansible.sh
+python3 -m pip install ansible
+"OR if you need some dependencies you can add them to requirements.txt and use this instead:"
+python3 -m pip install -r "/requirements.txt"
 ```
 
-This script will install Ansible (and any dependencies listed in `scripts/requirements.txt`) using pip. You only need to do this once per machine.
+This command will install Ansible (and any dependencies listed in `scripts/requirements.txt`) using pip. You only need to do this once per machine.
 
 ### 1. Configure inventory
 
@@ -40,10 +41,10 @@ mxcube_vms:
 Edit `playbooks/group_vars/all.yml` to customize:
 
 ```yaml
-install_base_path: "/opt/mxcube"    # Installation path
-service_user: "mxcube"              # System user
-use_local_repos: true               # Use local repos or clone from GitHub
-mxcubeweb_version: "develop"        # Git branch
+install_base_path: "/opt/mxcube" # Installation path
+service_user: "mxcube" # System user
+use_local_repos: true # Use local repos or clone from GitHub
+mxcubeweb_version: "develop" # Git branch
 ```
 
 ### 3. Prepare VMs (first time only)
@@ -61,7 +62,6 @@ docker load -i /tmp/flex-server-simulation_20241212.tar
 docker load -i /tmp/arinax_md.tar
 ```
 
-
 #### 4. Configure your SSH connection (first time only)
 
 To set up SSH keys and configure access to your VM, use the provided script:
@@ -72,6 +72,7 @@ cd ansible
 ```
 
 This script will:
+
 - Generate an SSH key pair if you don't have one
 - Copy your public key to the VM(s) listed in `inventory.yaml`
 - Ensure passwordless SSH access for Ansible and deployment scripts
@@ -86,18 +87,20 @@ cd ansible
 ```
 
 The script will:
+
 - Ask if you want to deploy/update MXCubeWeb
 - Start the service if not running
-- Create an SSH tunnel to access the web interface
+- Ask if you want to create an SSH tunnel to access the web interface
 
-Access MXCubeWeb at: http://localhost:8081
+If you create the SSH tunnel, access MXCubeWeb at: http://localhost:8081
+
+If you don't create the tunnel, access MXCubeWeb directly at: http://your-vm-hostname:8081
 
 ## Available Scripts
 
 - `scripts/start.sh` - Deploy and start with SSH tunnel
 - `scripts/deploy.sh` - Deploy only
 - `scripts/stop.sh` - Stop services
-- `scripts/restart.sh` - Restart services
 - `scripts/setup_ssh.sh` - Configure SSH keys
 - `scripts/install_ansible.sh` - Install Ansible dependencies
 
@@ -118,7 +121,6 @@ ansible-playbook -i inventory.yaml playbooks/deploy_vm.yml --tags tagsnames
 # Multiple tags
 ansible-playbook -i inventory.yaml playbooks/deploy_vm.yml --tags tag1,tag2,...
 ```
-
 
 Available tags:
 
