@@ -15,6 +15,9 @@
           - build-essential
           - python3
           - python3-pip
+          - graphviz
+          - redis-server
+          - tmux
         state: present
       when: ansible_os_family == "Debian"
       tags: [system, dependencies]
@@ -50,6 +53,28 @@
       changed_when: true
       tags: [conda, setup]
 
+    - name: Initialize conda for bash
+      ansible.builtin.command:
+        cmd: "{{ install_base_path }}/miniconda/bin/conda init bash"
+      become_user: "{{ service_user }}"
+      when: not conda_installed.stat.exists
+      changed_when: true
+      tags: [conda, setup]
+
+    - name: Check if mamba is installed
+      ansible.builtin.stat:
+        path: "{{ install_base_path }}/miniconda/bin/mamba"
+      register: mamba_installed
+      tags: [conda, mamba, setup]
+
+    - name: Install mamba in base environment
+      ansible.builtin.command:
+        cmd: "{{ install_base_path }}/miniconda/bin/conda install mamba -n base -c conda-forge -y"
+      become_user: "{{ service_user }}"
+      when: not mamba_installed.stat.exists
+      changed_when: false
+      tags: [conda, mamba, bliss]
+
     # Copy or clone repositories depending on use_local_repos flag
     - name: Copy local mxcubecore repository
       ansible.posix.synchronize:
@@ -81,6 +106,20 @@
       when: use_local_repos
       tags: [repositories, mxcubeweb, local, update]
 
+    - name: Copy local bliss repository
+      ansible.posix.synchronize:
+        src: "{{ local_bliss_path }}/"
+        dest: "{{ install_base_path }}/bliss"
+        delete: false
+        recursive: true
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=__pycache__"
+          - "--exclude=*.pyc"
+      become_user: "{{ service_user }}"
+      when: use_local_repos
+      tags: [repositories, bliss, local, update]
+
     - name: Clone mxcubecore from GitHub
       ansible.builtin.git:
         repo: "{{ mxcubecore_repo }}"
@@ -101,6 +140,16 @@
       when: not use_local_repos
       tags: [git, repositories, mxcubeweb, update]
 
+    - name: Clone bliss from GitLab
+      ansible.builtin.git:
+        repo: "{{ bliss_repo }}"
+        dest: "{{ install_base_path }}/bliss"
+        version: "{{ bliss_version }}"
+        force: true
+      become_user: "{{ service_user }}"
+      when: not use_local_repos
+      tags: [git, repositories, bliss, update]
+
     - name: Create mxcubeweb conda environment from conda-environment.yml
       ansible.builtin.command:
         cmd: "{{ install_base_path }}/miniconda/bin/conda env create --file {{ install_base_path }}/mxcubeweb/conda-environment.yml"
@@ -108,6 +157,22 @@
       become: false
       changed_when: false
       tags: [conda, environment]
+
+    - name: Create bliss conda environment using Makefile
+      ansible.builtin.shell:
+        cmd: |
+          source {{ install_base_path }}/miniconda/etc/profile.d/conda.sh
+          conda activate base
+          make bl_env NAME=bliss_dev
+      args:
+        chdir: "{{ install_base_path }}/bliss"
+        executable: /bin/bash
+      environment:
+        TMPDIR: /tmp
+      become_user: "{{ service_user }}"
+      become: false
+      changed_when: false
+      tags: [conda, environment, bliss]
 
     - name: Install Mxcubeweb dependencies with Poetry
       ansible.builtin.command:
