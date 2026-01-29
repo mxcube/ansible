@@ -11,6 +11,8 @@ PROJECT_ROOT="$(realpath "${SCRIPT_ROOT}/../")"
 VM_HOST=$(grep -A1 "mxcube_vm1:" "${PROJECT_ROOT}/inventory.yaml" | grep "ansible_host:" | awk '{print $2}')
 REMOTE_PORT=8081
 LOCAL_PORT=8081
+BLISS_REMOTE_PORT=5000
+BLISS_LOCAL_PORT=5000
 
 echo "=== MXCubeWeb Deployment and Start ==="
 echo ""
@@ -58,15 +60,16 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Creating SSH tunnels..."
     echo "MXCubeWeb - Local port: ${LOCAL_PORT} "
     echo "Video Streamer - Local port: 8000"
-    echo "URL: http://localhost:${LOCAL_PORT}"
+    echo "Bliss REST API - Local port: ${BLISS_LOCAL_PORT}"
+    echo "MXCubeWeb URL: http://localhost:${LOCAL_PORT}"
+    echo "Bliss API URL: http://localhost:${BLISS_LOCAL_PORT}/api/info"
     echo ""
     echo "Use scripts/stop.sh to stop the tunnels and close the application"
     echo ""
 
-    ssh -N -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} -L 8000:localhost:8000 ${VM_HOST}
+    ssh -N -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} -L 8000:localhost:8000 -L ${BLISS_LOCAL_PORT}:localhost:${BLISS_REMOTE_PORT} ${VM_HOST}
 else
     echo ""
     echo "No SSH tunnel created."
-    echo "Access MXCubeWeb directly at: http://${VM_HOST}:${REMOTE_PORT}"
     echo ""
 fi

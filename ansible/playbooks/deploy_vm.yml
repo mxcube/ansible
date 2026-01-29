@@ -171,8 +171,23 @@
         TMPDIR: /tmp
       become_user: "{{ service_user }}"
       become: false
-      changed_when: false
+      register: bliss_env_result
+      failed_when: bliss_env_result.rc != 0
       tags: [conda, environment, bliss]
+
+    - name: Install blissdemo in development mode
+      ansible.builtin.shell:
+        cmd: |
+          source {{ install_base_path }}/miniconda/etc/profile.d/conda.sh
+          conda activate bliss_dev
+          pip install -e ./blissdemo
+      args:
+        chdir: "{{ install_base_path }}/bliss"
+        executable: /bin/bash
+      become_user: "{{ service_user }}"
+      become: false
+      changed_when: false
+      tags: [conda, environment, bliss, update]
 
     - name: Install Mxcubeweb dependencies with Poetry
       ansible.builtin.command:
@@ -231,14 +246,50 @@
         daemon_reload: true
       tags: [service, systemd]
 
+    # Bliss REST API services
+    - name: Create bliss demo servers systemd service
+      ansible.builtin.template:
+        src: templates/bliss-demo-servers.service.j2
+        dest: "/etc/systemd/system/bliss-demo-servers-{{ vm_context }}.service"
+        mode: '0644'
+      notify: Reload systemd
+      tags: [service, systemd, bliss]
+
+    - name: Create bliss REST API systemd service
+      ansible.builtin.template:
+        src: templates/bliss-rest.service.j2
+        dest: "/etc/systemd/system/bliss-rest-{{ vm_context }}.service"
+        mode: '0644'
+      notify: Reload systemd
+      tags: [service, systemd, bliss]
+
+    - name: Enable and start Bliss demo servers service
+      ansible.builtin.systemd:
+        name: "bliss-demo-servers-{{ vm_context }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      tags: [service, systemd, bliss]
+
+    - name: Enable and start Bliss REST API service
+      ansible.builtin.systemd:
+        name: "bliss-rest-{{ vm_context }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      tags: [service, systemd, bliss]
+
     - name: Display deployment information
       ansible.builtin.debug:
         msg:
           - " Deployment complete for {{ vm_context }}"
           - " Installation path: {{ install_base_path }}"
-          - " Service name: mxcubeweb-{{ vm_context }}"
+          - " MXCubeWeb service: mxcubeweb-{{ vm_context }}"
+          - " Bliss demo servers: bliss-demo-servers-{{ vm_context }}"
+          - " Bliss REST API: bliss-rest-{{ vm_context }}"
           - " Check status: systemctl status mxcubeweb-{{ vm_context }}"
           - " View logs: journalctl -u mxcubeweb-{{ vm_context }} -f"
+          - " Bliss REST API: http://{{ ansible_hostname }}:5000/api"
       tags: [always]
 
   handlers:
